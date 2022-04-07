@@ -3,7 +3,7 @@ import pygame
 
 class GuiObject:
     def __init__(self,
-                 pos: tuple[int, int],
+                 pos: tuple[float, float],
                  image: pygame.Surface) -> None:
         self.pos = pygame.Vector2(*pos)
         self.image = image

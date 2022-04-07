@@ -4,7 +4,7 @@ from .gui_object import GuiObject
 
 class Button(GuiObject):
     def __init__(self,
-                 pos: tuple[int, int],
+                 pos: tuple[float, float],
                  image: pygame.Surface,
                  pressed_image: pygame.Surface) -> None:
         super().__init__(pos, image)
