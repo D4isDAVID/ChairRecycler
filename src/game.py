@@ -63,24 +63,25 @@ while running:
     for event in pygame.event.get():
         match event.type:
             case pygame.QUIT:
-                pygame.quit()
                 running = False
             case pygame.MOUSEMOTION:
                 x = event.pos[0]
                 y = event.pos[1]
-                newhover = None
+                new_hover = None
                 for obj in gui.values():
-                    if x > obj.pos.x and x < obj.pos.x+obj.image.get_width() \
-                            and y > obj.pos.y and y < obj.pos.y+obj.image.get_height():
-                        newhover = obj
+                    if obj.pos.x < x < obj.pos.x+obj.image.get_width() \
+                            and obj.pos.y < y < obj.pos.y + obj.image.get_height():
+                        new_hover = obj
                         obj.hover()
                         break
-                if hover and hover is not newhover:
-                    hover.unhover()
-                hover = newhover
+                if hover and hover is not new_hover:
+                    hover.after_hover()
+                hover = new_hover
             case pygame.MOUSEBUTTONDOWN:
-                    if hover:
-                        hover.click()
+                if hover:
+                    hover.click()
             case pygame.MOUSEBUTTONUP:
-                    if hover:
-                        hover.unclick()
+                if hover:
+                    hover.after_click()
+
+pygame.quit()

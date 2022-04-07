@@ -14,11 +14,11 @@ class GuiObject:
     def hover(self) -> None:
         pass
 
-    def unhover(self) -> None:
+    def after_hover(self) -> None:
         pass
 
     def click(self) -> None:
         pass
 
-    def unclick(self) -> None:
+    def after_click(self) -> None:
         pass

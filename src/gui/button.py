@@ -14,12 +14,12 @@ class Button(GuiObject):
     def hover(self) -> None:
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
-    def unhover(self) -> None:
+    def after_hover(self) -> None:
         self.image = self.original_image
         pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
     def click(self) -> None:
         self.image = self.pressed_image
 
-    def unclick(self) -> None:
+    def after_click(self) -> None:
         self.image = self.original_image
