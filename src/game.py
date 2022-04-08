@@ -16,6 +16,8 @@ window = pygame.display.set_mode(resolution)
 clock = pygame.time.Clock()
 running = True
 
+gui: dict[str, GuiObject] = {}
+
 assets: dict[str, pygame.Surface] = {}
 for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'buttons')):
     name = file.name.split('.')[0]
@@ -26,31 +28,36 @@ for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds
     name = file.name.split('.')[0]
     sounds[name] = pygame.mixer.Sound(file.path)
 
-gui: dict[str, GuiObject] = {}
-gui['play'] = Button(
-    (width/2-assets['button_play'].get_width()/2, height/2),
-    assets['button_play'],
-    assets['button_play_pressed']
-)
-gui['info'] = Button(
-    (gui['play'].pos.x, height/2+gui['play'].image.get_height()+10),
-    assets['button_info'],
-    assets['button_info_pressed']
-)
-gui['options'] = Button(
-    (gui['play'].pos.x+gui['play'].image.get_width()/2-assets['button_options'].get_width()/2,height/2+gui['play'].image.get_height()+10),
-    assets['button_options'],
-    assets['button_options_pressed']
-)
-gui['exit'] = Button(
-    (gui['play'].pos.x+gui['play'].image.get_width()-assets['button_exit'].get_width(), height/2+gui['play'].image.get_height()+10),
-    assets['button_exit'],
-    assets['button_exit_pressed']
-)
+
+def main_menu():
+    global gui
+    gui = {}
+    gui['play'] = Button(
+        (width/2-assets['button_play'].get_width()/2, height/2),
+        assets['button_play'],
+        assets['button_play_pressed']
+    )
+    gui['info'] = Button(
+        (gui['play'].pos.x, height/2+gui['play'].image.get_height()+10),
+        assets['button_info'],
+        assets['button_info_pressed']
+    )
+    gui['options'] = Button(
+        (gui['play'].pos.x+gui['play'].image.get_width()/2-assets['button_options'].get_width()/2,height/2+gui['play'].image.get_height()+10),
+        assets['button_options'],
+        assets['button_options_pressed']
+    )
+    gui['exit'] = Button(
+        (gui['play'].pos.x+gui['play'].image.get_width()-assets['button_exit'].get_width(), height/2+gui['play'].image.get_height()+10),
+        assets['button_exit'],
+        assets['button_exit_pressed']
+    )
+    gui['exit'].after_click = pygame.quit
+    sounds['main menu'].play(-1)
+
 
 hover: GuiObject | None = None
-
-sounds['main menu'].play(-1)
+main_menu()
 while running:
     window.fill((255, 255, 255))
 
