@@ -40,6 +40,11 @@ for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds
     sounds[name] = pygame.mixer.Sound(file.path)
 
 
+def stop_game():
+    global running
+    running = False
+
+
 def unload_scene():
     global gui_objects, hover
     hover = None
@@ -90,7 +95,7 @@ def main_menu():
         assets['button_exit_pressed']
     )
     gui_objects['play'].after_click = game
-    gui_objects['exit'].after_click = pygame.quit
+    gui_objects['exit'].after_click = stop_game
     sounds['main_menu'].play(-1)
 
 
@@ -134,7 +139,7 @@ while running:
     for event in pygame.event.get():
         match event.type:
             case pygame.QUIT:
-                running = False
+                stop_game()
             case pygame.MOUSEMOTION:
                 x = event.pos[0]
                 y = event.pos[1]
