@@ -1,12 +1,21 @@
 import os
+import random
 import pygame
-from game import GameObject, Player
+from game import GameObject, Player, Obstacle
 from gui import Button, GuiObject
 
 
 WIDTH, HEIGHT = RESOLUTION = (1920, 1080)
 FPS = 60
 MULTIPLIER = 5
+MAX_VELOCITY = 25
+
+try:
+    with open('highscore') as f:
+        high_score = int(f.read())
+except FileNotFoundError or OSError:
+    high_score = 0
+print(high_score)
 
 
 def to_screen_scale(surface: pygame.Surface):
@@ -21,7 +30,6 @@ running = True
 hover: GuiObject | None = None
 scene: str | None = None
 player: Player | None = None
-obstacles: Player | None = None
 bg_color: pygame.Color | None = None
 game_objects: dict[str, GameObject] = {}
 gui_objects: dict[str, GuiObject] = {}
@@ -55,8 +63,9 @@ def stop_game():
 
 
 def unload_scene():
-    global gui_objects, hover
+    global game_objects, gui_objects, hover
     hover = None
+    game_objects = {}
     gui_objects = {}
     pygame.mixer.stop()
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -118,7 +127,11 @@ def main_menu():
 
 
 def game():
-    global scene, bg_color, gui_objects, game_objects, player
+    global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text
+    high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
+    score = 0
+    Obstacle.velocity = 25
+    game_started = pygame.time.get_ticks()
     unload_scene()
     scene = 'game'
     bg_color = pygame.Color(125, 125, 125)
@@ -130,16 +143,40 @@ def game():
     sounds['go'].play(-1)
 
 
+obstacles: tuple[Obstacle, ...] = (
+    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
+             assets['obstacle_chair_side'], (4 * MULTIPLIER,
+                                             6 * MULTIPLIER,
+                                             12 * MULTIPLIER,
+                                             37 * MULTIPLIER)),
+    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
+             pygame.transform.flip(assets['obstacle_chair_side'], True, False),
+             (1 * MULTIPLIER,
+              6 * MULTIPLIER,
+              12 * MULTIPLIER,
+              37 * MULTIPLIER)),
+)
 intro_alpha = 1
 delta_alpha = 3
 intro()
+game_started = 0
+score = 0
+game_font_big = pygame.font.SysFont('Arial', 100)
+game_font_medium = pygame.font.SysFont('Arial', 75)
+game_font_small = pygame.font.SysFont('Arial', 40)
+high_score_text: pygame.Surface | None = None
 while running:
     delta_time = clock.tick(FPS) / 1000 * FPS
     window.fill(bg_color)
 
-    for obj in game_objects.values():
+    for k, obj in list(game_objects.items()):
         obj.update(delta_time)
         obj.draw(window)
+        if obj.pos.x + obj.image.get_width() < 0:
+            del game_objects[k]
+        if isinstance(obj, Obstacle):
+            if obj.collides_with(player):
+                main_menu()
     for obj in gui_objects.values():
         obj.draw(window)
 
@@ -151,7 +188,23 @@ while running:
             delta_alpha = -delta_alpha
         if intro_alpha <= -10:
             main_menu()
+    elif scene == 'game':
+        score += delta_time
+        score_text = game_font_medium.render(f'Score: {str(round(score))}', True, (255, 255, 255))
+        if score > high_score:
+            high_score = score
+            high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
+        window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7))
+        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2, HEIGHT/7+score_text.get_height()))
 
+    if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % 2 == 0:
+        if f'obs{str(time)}' not in game_objects.keys():
+            game_objects[f'obs{str(time)}'] = random.choice(obstacles).copy()
+            if Obstacle.velocity < MAX_VELOCITY:
+                Obstacle.velocity += 0.1
+
+    fps = game_font_big.render(str(round(clock.get_fps())), True, (255, 255, 255))
+    window.blit(fps, (WIDTH-fps.get_width(), HEIGHT-fps.get_height()))
     pygame.display.flip()
 
     for event in pygame.event.get():
@@ -190,4 +243,7 @@ while running:
     if scene == 'game' and pygame.key.get_pressed()[pygame.K_DOWN] and not player.jumping and not player.sliding:
         player.slide()
 
+
+with open('highscore', 'w') as f:
+    f.write(str(round(high_score)))
 pygame.quit()
