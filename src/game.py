@@ -47,6 +47,20 @@ def unload_scene():
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 
+def intro():
+    global scene, bg_color, gui_objects
+    unload_scene()
+    scene = 'intro'
+    bg_color = pygame.Color(0, 0, 0)
+    font_big = pygame.font.SysFont('Arial', 100, True)
+    font_small = pygame.font.SysFont('Arial', 50)
+    text = font_big.render('AharaiTech Tel-Aviv', True, (255, 255, 255))
+    gui_objects['aharaitech'] = GuiObject((WIDTH/2-text.get_width()/2, HEIGHT/2-text.get_height()/2), text)
+    text2 = font_small.render('Presents...', True, (255, 255, 255))
+    gui_objects['presents'] = GuiObject((WIDTH/2+text2.get_width(), HEIGHT/2+text.get_height()/3), text2)
+    gui_objects['aharaitech'].image.set_alpha(0)
+
+
 def main_menu():
     global scene, bg_color, gui_objects
     unload_scene()
@@ -92,15 +106,26 @@ def game():
     sounds['go'].play(-1)
 
 
-main_menu()
+intro_alpha = 1
+delta_alpha = 3
+intro()
 while running:
     window.fill(bg_color)
 
-    for obj in gui_objects.values():
-        obj.draw(window)
     for obj in game_objects.values():
         obj.update()
         obj.draw(window)
+    for obj in gui_objects.values():
+        obj.draw(window)
+
+    if scene == 'intro':
+        intro_alpha += delta_alpha
+        gui_objects['aharaitech'].image.set_alpha(intro_alpha)
+        gui_objects['presents'].image.set_alpha(intro_alpha)
+        if intro_alpha >= 255:
+            delta_alpha = -delta_alpha
+        if intro_alpha <= -10:
+            main_menu()
 
     clock.tick(60)
     pygame.display.flip()
@@ -129,12 +154,16 @@ while running:
                 if hover:
                     hover.after_click()
             case pygame.KEYDOWN:
+                if scene == 'intro':
+                    main_menu()
                 if scene == 'game' and event.key == pygame.K_UP and not player.jumping:
+                    if player.sliding:
+                        player.stop_sliding()
                     player.jump()
             case pygame.KEYUP:
                 if scene == 'game' and event.key == pygame.K_DOWN and player.sliding:
                     player.stop_sliding()
-    if scene == 'game' and pygame.key.get_pressed()[pygame.K_DOWN] and not player.sliding:
+    if scene == 'game' and pygame.key.get_pressed()[pygame.K_DOWN] and not player.jumping and not player.sliding:
         player.slide()
 
 pygame.quit()
