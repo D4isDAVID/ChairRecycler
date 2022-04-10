@@ -40,7 +40,6 @@ def load_assets(prefix: str = '', *paths: list[str]):
             load_assets(f'{prefix}{name}', *paths, name)
             continue
         try:
-            print(f'{prefix}{name}')
             i = to_screen_scale(pygame.image.load(file.path).convert_alpha())
             assets[f'{prefix}{name}'] = i
         except pygame.error:
