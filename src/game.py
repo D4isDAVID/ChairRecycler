@@ -157,6 +157,12 @@ obstacles: tuple[Obstacle, ...] = (
               6 * MULTIPLIER,
               12 * MULTIPLIER,
               37 * MULTIPLIER)),
+    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side'].get_height()),
+             pygame.transform.flip(assets['obstacle_table_side'], True, False),
+             (1 * MULTIPLIER,
+              16 * MULTIPLIER,
+              43 * MULTIPLIER,
+              4 * MULTIPLIER))
 )
 intro_alpha = 1
 delta_alpha = 3
