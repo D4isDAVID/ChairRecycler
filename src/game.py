@@ -81,6 +81,9 @@ def main_menu():
     unload_scene()
     scene = 'main_menu'
     bg_color = pygame.Color(125, 125, 125)
+    gui_objects['logo'] = GuiObject((WIDTH/2-assets['logo'].get_width()/2,
+                                     HEIGHT/3-assets['logo'].get_height()/2),
+                                    assets['logo'])
     gui_objects['play'] = Button(
         (WIDTH/2-assets['button_play'].get_width()/2, HEIGHT/2),
         assets['button_play'],
