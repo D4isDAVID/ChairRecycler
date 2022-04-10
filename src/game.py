@@ -23,7 +23,7 @@ def to_screen_scale(surface: pygame.Surface):
 
 
 pygame.init()
-window = pygame.display.set_mode(RESOLUTION)
+window = pygame.display.set_mode(RESOLUTION, vsync=1)
 clock = pygame.time.Clock()
 running = True
 
@@ -168,7 +168,7 @@ game_font_medium = pygame.font.SysFont('Arial', 75)
 game_font_small = pygame.font.SysFont('Arial', 40)
 high_score_text: pygame.Surface | None = None
 while running:
-    delta_time = clock.tick(FPS) / 1000 * FPS
+    delta_time = clock.tick() / 1000 * FPS
     window.fill(bg_color)
 
     for k, obj in list(game_objects.items()):
