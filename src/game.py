@@ -71,7 +71,7 @@ def main_menu():
     global scene, bg_color, gui_objects
     unload_scene()
     scene = 'main_menu'
-    bg_color = pygame.Color(255, 255, 255)
+    bg_color = pygame.Color(125, 125, 125)
     gui_objects['play'] = Button(
         (WIDTH/2-assets['button_play'].get_width()/2, HEIGHT/2),
         assets['button_play'],
@@ -96,6 +96,12 @@ def main_menu():
     )
     gui_objects['play'].after_click = game
     gui_objects['exit'].after_click = stop_game
+    grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
+    grey_box.fill((75, 75, 75))
+    game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
+    game_objects['player'] = GameObject((WIDTH/MULTIPLIER,
+                                         game_objects['ground'].pos.y-assets['player_front'].get_height()),
+                                        assets['player_front'])
     sounds['main_menu'].play(-1)
 
 
@@ -103,9 +109,9 @@ def game():
     global scene, bg_color, gui_objects, game_objects, player
     unload_scene()
     scene = 'game'
-    bg_color = pygame.Color(255, 255, 255)
+    bg_color = pygame.Color(125, 125, 125)
     grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
-    grey_box.fill((100, 100, 100))
+    grey_box.fill((75, 75, 75))
     game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
