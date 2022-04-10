@@ -28,6 +28,9 @@ assets: dict[str, pygame.Surface] = {}
 for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'buttons')):
     name = file.name.split('.')[0]
     assets[f'button_{name}'] = to_screen_scale(pygame.image.load(file.path).convert_alpha())
+for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'player')):
+    name = file.name.split('.')[0]
+    assets[f'player_{name}'] = to_screen_scale(pygame.image.load(file.path).convert_alpha())
 
 sounds: dict[str, pygame.mixer.Sound] = {}
 for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds')):
@@ -78,9 +81,7 @@ def game():
     grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
     grey_box.fill((100, 100, 100))
     game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
-    grey_box = pygame.Surface((20*MULTIPLIER, 35*MULTIPLIER))
-    grey_box.fill((40, 40, 255))
-    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, grey_box)
+    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'], assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
     sounds['go'].play(-1)
 
 
@@ -122,9 +123,11 @@ while running:
                     hover.after_click()
             case pygame.KEYDOWN:
                 if scene == 'game' and event.key == pygame.K_UP and not player.jumping:
-                    player.jumping = True
-
-                if scene == 'game' and event.key == pygame.K_DOWN and not player.sliding:
-                    player.sliding = True
+                    player.jump()
+            case pygame.KEYUP:
+                if scene == 'game' and event.key == pygame.K_DOWN and player.sliding:
+                    player.stop_sliding()
+    if scene == 'game' and pygame.key.get_pressed()[pygame.K_DOWN] and not player.sliding:
+        player.slide()
 
 pygame.quit()
