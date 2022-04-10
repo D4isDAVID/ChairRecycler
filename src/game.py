@@ -5,7 +5,7 @@ from game import GameObject, Player, Obstacle
 from gui import Button, GuiObject
 
 
-WIDTH, HEIGHT = RESOLUTION = (1920, 1080)
+WIDTH, HEIGHT = RESOLUTION = 1920, 1080
 FPS = 60
 MULTIPLIER = 5
 MAX_VELOCITY = 25
@@ -19,7 +19,7 @@ print(high_score)
 
 
 def to_screen_scale(surface: pygame.Surface):
-    return pygame.transform.scale(surface, (surface.get_width()*MULTIPLIER, surface.get_height()*MULTIPLIER))
+    return pygame.transform.scale(surface, (surface.get_width() * MULTIPLIER, surface.get_height() * MULTIPLIER))
 
 
 pygame.init()
@@ -79,9 +79,9 @@ def intro():
     font_big = pygame.font.SysFont('Arial', 100, True)
     font_small = pygame.font.SysFont('Arial', 50)
     text = font_big.render('AharaiTech Tel-Aviv', True, (255, 255, 255))
-    gui_objects['aharaitech'] = GuiObject((WIDTH/2-text.get_width()/2, HEIGHT/2-text.get_height()/2), text)
+    gui_objects['aharaitech'] = GuiObject((WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2), text)
     text2 = font_small.render('Presents...', True, (255, 255, 255))
-    gui_objects['presents'] = GuiObject((WIDTH/2+text2.get_width(), HEIGHT/2+text.get_height()/3), text2)
+    gui_objects['presents'] = GuiObject((WIDTH / 2 + text2.get_width(), HEIGHT / 2 + text.get_height() / 3), text2)
     gui_objects['aharaitech'].image.set_alpha(0)
 
 
@@ -90,38 +90,40 @@ def main_menu():
     unload_scene()
     scene = 'main_menu'
     bg_color = pygame.Color(125, 125, 125)
-    gui_objects['logo'] = GuiObject((WIDTH/2-assets['logo'].get_width()/2,
-                                     HEIGHT/3-assets['logo'].get_height()/2),
+    gui_objects['logo'] = GuiObject((WIDTH / 2 - assets['logo'].get_width() / 2,
+                                     HEIGHT / 3 - assets['logo'].get_height() / 2),
                                     assets['logo'])
     gui_objects['play'] = Button(
-        (WIDTH/2-assets['button_play'].get_width()/2, HEIGHT/2),
+        (WIDTH / 2 - assets['button_play'].get_width() / 2, HEIGHT / 2),
         assets['button_play'],
         assets['button_play_pressed']
     )
     gui_objects['info'] = Button(
-        (gui_objects['play'].pos.x, HEIGHT/2+gui_objects['play'].image.get_height()+10),
+        (gui_objects['play'].pos.x, HEIGHT / 2 + gui_objects['play'].image.get_height() + 10),
         assets['button_info'],
         assets['button_info_pressed']
     )
     gui_objects['options'] = Button(
-        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()/2-assets['button_options'].get_width()/2,
-         HEIGHT/2+gui_objects['play'].image.get_height()+10),
+        (gui_objects['play'].pos.x
+         + gui_objects['play'].image.get_width() / 2
+         - assets['button_options'].get_width() / 2,
+         HEIGHT / 2 + gui_objects['play'].image.get_height() + 10),
         assets['button_options'],
         assets['button_options_pressed']
     )
     gui_objects['exit'] = Button(
-        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()-assets['button_exit'].get_width(),
-         HEIGHT/2+gui_objects['play'].image.get_height()+10),
+        (gui_objects['play'].pos.x + gui_objects['play'].image.get_width() - assets['button_exit'].get_width(),
+         HEIGHT / 2 + gui_objects['play'].image.get_height() + 10),
         assets['button_exit'],
         assets['button_exit_pressed']
     )
     gui_objects['play'].after_click = game
     gui_objects['exit'].after_click = stop_game
-    grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
+    grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
     grey_box.fill((75, 75, 75))
-    game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
-    game_objects['player'] = GameObject((WIDTH/MULTIPLIER,
-                                         game_objects['ground'].pos.y-assets['player_front'].get_height()),
+    game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
+    game_objects['player'] = GameObject((WIDTH / MULTIPLIER,
+                                         game_objects['ground'].pos.y - assets['player_front'].get_height()),
                                         assets['player_front'])
     sounds['main_menu'].play(-1)
 
@@ -135,10 +137,10 @@ def game():
     unload_scene()
     scene = 'game'
     bg_color = pygame.Color(125, 125, 125)
-    grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
+    grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
     grey_box.fill((75, 75, 75))
-    game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
-    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
+    game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
+    player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
     sounds['go'].play(-1)
 
@@ -216,7 +218,7 @@ while running:
                 y = event.pos[1]
                 new_hover = None
                 for obj in gui_objects.values():
-                    if obj.pos.x < x < obj.pos.x+obj.image.get_width() \
+                    if obj.pos.x < x < obj.pos.x + obj.image.get_width() \
                             and obj.pos.y < y < obj.pos.y + obj.image.get_height():
                         new_hover = obj
                         obj.hover()
