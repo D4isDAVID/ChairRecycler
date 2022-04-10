@@ -3,8 +3,8 @@ from .game_object import GameObject
 
 
 class Player(GameObject):
-    max_velocity = 8
-    velocity_add = 0.40
+    max_velocity = 10
+    velocity_add = 0.45
 
     def __init__(self, x: float, ground_y: float, image: pygame.Surface,
                  jump_image: pygame.Surface, slide_image: pygame.Surface) -> None:
