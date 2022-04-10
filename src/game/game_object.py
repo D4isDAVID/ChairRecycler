@@ -13,5 +13,5 @@ class GameObject:
         # pygame.draw.rect(surface, (255, 0, 0),
         #                  (self.pos.x+self.hitbox.x, self.pos.y+self.hitbox.y, self.hitbox.w, self.hitbox.h), 4)
 
-    def update(self) -> None:
+    def update(self, delta_time: float) -> None:
         pass

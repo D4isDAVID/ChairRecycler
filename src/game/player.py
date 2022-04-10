@@ -41,9 +41,9 @@ class Player(GameObject):
         self.hitbox = self.original_hitbox
         self.pos.y = self.ground_y - self.image.get_height()
 
-    def update(self):
+    def update(self, delta_time: float):
         if self.jumping:
-            self.pos.y -= self.velocity * 4
-            self.velocity -= self.velocity_add
+            self.pos.y -= self.velocity * 4 * delta_time
+            self.velocity -= self.velocity_add * delta_time
             if self.ground_y < self.pos.y + self.image.get_height():
                 self.stop_jumping()

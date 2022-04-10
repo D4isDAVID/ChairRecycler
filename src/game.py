@@ -5,6 +5,7 @@ from gui import Button, GuiObject
 
 
 WIDTH, HEIGHT = RESOLUTION = (1920, 1080)
+FPS = 60
 MULTIPLIER = 5
 
 
@@ -110,16 +111,17 @@ intro_alpha = 1
 delta_alpha = 3
 intro()
 while running:
+    delta_time = clock.tick(FPS) / 1000 * FPS
     window.fill(bg_color)
 
     for obj in game_objects.values():
-        obj.update()
+        obj.update(delta_time)
         obj.draw(window)
     for obj in gui_objects.values():
         obj.draw(window)
 
     if scene == 'intro':
-        intro_alpha += delta_alpha
+        intro_alpha += delta_alpha * delta_time
         gui_objects['aharaitech'].image.set_alpha(intro_alpha)
         gui_objects['presents'].image.set_alpha(intro_alpha)
         if intro_alpha >= 255:
@@ -127,7 +129,6 @@ while running:
         if intro_alpha <= -10:
             main_menu()
 
-    clock.tick(60)
     pygame.display.flip()
 
     for event in pygame.event.get():
