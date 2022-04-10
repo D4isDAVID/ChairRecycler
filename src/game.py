@@ -239,6 +239,10 @@ while running:
                 if hover:
                     hover.after_click()
             case pygame.KEYDOWN:
+                if scene == 'main_menu' and event.key == pygame.K_SPACE:
+                    gui_objects['play'].after_click()
+                if scene == 'main_menu' and event.key == pygame.K_ESCAPE:
+                    gui_objects['exit'].after_click()
                 if scene == 'intro':
                     main_menu()
                 if scene == 'game' and event.key == pygame.K_UP and not player.jumping:
