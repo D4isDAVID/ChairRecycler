@@ -1,22 +1,28 @@
 import os
 import pygame
+from game import GameObject, Player
 from gui import Button, GuiObject
 
 
+WIDTH, HEIGHT = RESOLUTION = (1920, 1080)
+MULTIPLIER = 5
+
+
 def to_screen_scale(surface: pygame.Surface):
-    global multiplier
-    return pygame.transform.scale(surface, (surface.get_width()*multiplier, surface.get_height()*multiplier))
+    return pygame.transform.scale(surface, (surface.get_width()*MULTIPLIER, surface.get_height()*MULTIPLIER))
 
-
-width, height = resolution = (1920, 1080)
-multiplier = width/384
 
 pygame.init()
-window = pygame.display.set_mode(resolution)
+window = pygame.display.set_mode(RESOLUTION)
 clock = pygame.time.Clock()
 running = True
 
-gui: dict[str, GuiObject] = {}
+hover: GuiObject | None = None
+scene: str | None = None
+player: Player | None = None
+obstacles: Player | None = None
+game_objects: dict[str, GameObject] = {}
+gui_objects: dict[str, GuiObject] = {}
 
 assets: dict[str, pygame.Surface] = {}
 for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'buttons')):
@@ -29,39 +35,62 @@ for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds
     sounds[name] = pygame.mixer.Sound(file.path)
 
 
+def unload_scene():
+    global gui_objects
+    hover = None
+    gui_objects = {}
+    pygame.mixer.stop()
+
+
 def main_menu():
-    global gui
-    gui = {}
-    gui['play'] = Button(
-        (width/2-assets['button_play'].get_width()/2, height/2),
+    global gui_objects, scene
+    unload_scene()
+    scene = 'main_menu'
+    gui_objects['play'] = Button(
+        (WIDTH/2-assets['button_play'].get_width()/2, HEIGHT/2),
         assets['button_play'],
         assets['button_play_pressed']
     )
-    gui['info'] = Button(
-        (gui['play'].pos.x, height/2+gui['play'].image.get_height()+10),
+    gui_objects['info'] = Button(
+        (gui_objects['play'].pos.x, HEIGHT/2+gui_objects['play'].image.get_height()+10),
         assets['button_info'],
         assets['button_info_pressed']
     )
-    gui['options'] = Button(
-        (gui['play'].pos.x+gui['play'].image.get_width()/2-assets['button_options'].get_width()/2,height/2+gui['play'].image.get_height()+10),
+    gui_objects['options'] = Button(
+        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()/2-assets['button_options'].get_width()/2,HEIGHT/2+gui_objects['play'].image.get_height()+10),
         assets['button_options'],
         assets['button_options_pressed']
     )
-    gui['exit'] = Button(
-        (gui['play'].pos.x+gui['play'].image.get_width()-assets['button_exit'].get_width(), height/2+gui['play'].image.get_height()+10),
+    gui_objects['exit'] = Button(
+        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()-assets['button_exit'].get_width(), HEIGHT/2+gui_objects['play'].image.get_height()+10),
         assets['button_exit'],
         assets['button_exit_pressed']
     )
-    gui['exit'].after_click = pygame.quit
+    gui_objects['play'].after_click = game
+    gui_objects['exit'].after_click = pygame.quit
     sounds['main menu'].play(-1)
 
 
-hover: GuiObject | None = None
+def game():
+    global gui_objects, game_objects, scene, player
+    unload_scene()
+    scene = 'game'
+    grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
+    grey_box.fill((100, 100, 100))
+    game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
+    grey_box = pygame.Surface((20*MULTIPLIER, 35*MULTIPLIER))
+    grey_box.fill((40, 40, 255))
+    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, grey_box)
+
+
 main_menu()
 while running:
     window.fill((255, 255, 255))
 
-    for obj in gui.values():
+    for obj in gui_objects.values():
+        obj.draw(window)
+    for obj in game_objects.values():
+        obj.update()
         obj.draw(window)
 
     clock.tick(60)
@@ -75,7 +104,7 @@ while running:
                 x = event.pos[0]
                 y = event.pos[1]
                 new_hover = None
-                for obj in gui.values():
+                for obj in gui_objects.values():
                     if obj.pos.x < x < obj.pos.x+obj.image.get_width() \
                             and obj.pos.y < y < obj.pos.y + obj.image.get_height():
                         new_hover = obj
@@ -90,5 +119,11 @@ while running:
             case pygame.MOUSEBUTTONUP:
                 if hover:
                     hover.after_click()
+            case pygame.KEYDOWN:
+                if scene == 'game' and event.key == pygame.K_UP and not player.jumping:
+                    player.jumping = True
+
+                if scene == 'game' and event.key == pygame.K_DOWN and not player.sliding:
+                    player.sliding = True
 
 pygame.quit()
