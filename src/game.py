@@ -43,6 +43,7 @@ def unload_scene():
     hover = None
     gui_objects = {}
     pygame.mixer.stop()
+    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 
 def main_menu():
