@@ -21,6 +21,7 @@ hover: GuiObject | None = None
 scene: str | None = None
 player: Player | None = None
 obstacles: Player | None = None
+bg_color: pygame.Color | None = None
 game_objects: dict[str, GameObject] = {}
 gui_objects: dict[str, GuiObject] = {}
 
@@ -47,9 +48,10 @@ def unload_scene():
 
 
 def main_menu():
-    global gui_objects, scene
+    global scene, bg_color, gui_objects
     unload_scene()
     scene = 'main_menu'
+    bg_color = pygame.Color(255, 255, 255)
     gui_objects['play'] = Button(
         (WIDTH/2-assets['button_play'].get_width()/2, HEIGHT/2),
         assets['button_play'],
@@ -78,9 +80,10 @@ def main_menu():
 
 
 def game():
-    global gui_objects, game_objects, scene, player
+    global scene, bg_color, gui_objects, game_objects, player
     unload_scene()
     scene = 'game'
+    bg_color = pygame.Color(255, 255, 255)
     grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
     grey_box.fill((100, 100, 100))
     game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
@@ -91,7 +94,7 @@ def game():
 
 main_menu()
 while running:
-    window.fill((255, 255, 255))
+    window.fill(bg_color)
 
     for obj in gui_objects.values():
         obj.draw(window)
