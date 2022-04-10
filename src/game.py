@@ -68,7 +68,7 @@ def main_menu():
     )
     gui_objects['play'].after_click = game
     gui_objects['exit'].after_click = pygame.quit
-    sounds['main menu'].play(-1)
+    sounds['main_menu'].play(-1)
 
 
 def game():
