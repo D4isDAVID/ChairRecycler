@@ -8,7 +8,7 @@ from gui import Button, GuiObject
 WIDTH, HEIGHT = RESOLUTION = 1920, 1080
 FPS = 60
 MULTIPLIER = 5
-MAX_VELOCITY = 25
+MAX_VELOCITY = 27
 
 try:
     with open('highscore') as f:
@@ -132,7 +132,7 @@ def game():
     global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text
     high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
     score = 0
-    Obstacle.velocity = 25
+    Obstacle.velocity = 10
     game_started = pygame.time.get_ticks()
     unload_scene()
     scene = 'game'
