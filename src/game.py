@@ -81,6 +81,7 @@ def game():
     grey_box = pygame.Surface((20*MULTIPLIER, 35*MULTIPLIER))
     grey_box.fill((40, 40, 255))
     player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, grey_box)
+    sounds['go'].play(-1)
 
 
 main_menu()
