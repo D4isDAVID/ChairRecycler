@@ -39,7 +39,7 @@ for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds
 
 
 def unload_scene():
-    global gui_objects
+    global gui_objects, hover
     hover = None
     gui_objects = {}
     pygame.mixer.stop()
@@ -60,12 +60,14 @@ def main_menu():
         assets['button_info_pressed']
     )
     gui_objects['options'] = Button(
-        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()/2-assets['button_options'].get_width()/2,HEIGHT/2+gui_objects['play'].image.get_height()+10),
+        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()/2-assets['button_options'].get_width()/2,
+         HEIGHT/2+gui_objects['play'].image.get_height()+10),
         assets['button_options'],
         assets['button_options_pressed']
     )
     gui_objects['exit'] = Button(
-        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()-assets['button_exit'].get_width(), HEIGHT/2+gui_objects['play'].image.get_height()+10),
+        (gui_objects['play'].pos.x+gui_objects['play'].image.get_width()-assets['button_exit'].get_width(),
+         HEIGHT/2+gui_objects['play'].image.get_height()+10),
         assets['button_exit'],
         assets['button_exit_pressed']
     )
@@ -81,7 +83,8 @@ def game():
     grey_box = pygame.Surface((WIDTH, HEIGHT/MULTIPLIER))
     grey_box.fill((100, 100, 100))
     game_objects['ground'] = GameObject((0, HEIGHT-HEIGHT/MULTIPLIER), grey_box)
-    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'], assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
+    player = game_objects['player'] = Player(WIDTH/MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
+                                             assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
     sounds['go'].play(-1)
 
 
