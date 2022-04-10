@@ -26,18 +26,28 @@ bg_color: pygame.Color | None = None
 game_objects: dict[str, GameObject] = {}
 gui_objects: dict[str, GuiObject] = {}
 
-assets: dict[str, pygame.Surface] = {}
-for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'buttons')):
-    name = file.name.split('.')[0]
-    assets[f'button_{name}'] = to_screen_scale(pygame.image.load(file.path).convert_alpha())
-for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'player')):
-    name = file.name.split('.')[0]
-    assets[f'player_{name}'] = to_screen_scale(pygame.image.load(file.path).convert_alpha())
-
 sounds: dict[str, pygame.mixer.Sound] = {}
-for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', 'sounds')):
-    name = file.name.split('.')[0]
-    sounds[name] = pygame.mixer.Sound(file.path)
+assets: dict[str, pygame.Surface] = {}
+
+
+def load_assets(prefix: str = '', *paths: list[str]):
+    global assets, sounds
+    if prefix != '':
+        prefix += '_'
+    for file in os.scandir(os.path.join(os.path.dirname(__file__), 'assets', *paths)):
+        name = file.name.split('.')[0]
+        if file.is_dir():
+            load_assets(f'{prefix}{name}', *paths, name)
+            continue
+        try:
+            print(f'{prefix}{name}')
+            i = to_screen_scale(pygame.image.load(file.path).convert_alpha())
+            assets[f'{prefix}{name}'] = i
+        except pygame.error:
+            sounds[name] = pygame.mixer.Sound(file.path)
+
+
+load_assets()
 
 
 def stop_game():
