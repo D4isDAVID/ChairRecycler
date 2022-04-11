@@ -1,20 +1,31 @@
 import os
 import random
 import pygame
+import json
 from game import GameObject, Player, Obstacle
 from gui import Button, GuiObject
 
 
+ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()-=_+/,.`~;\\ '
 WIDTH, HEIGHT = RESOLUTION = 1280, 720
 FPS = 60
 MULTIPLIER = 4
-MAX_VELOCITY = 50
 
+high_score = 0
 try:
     with open('highscore') as f:
-        high_score = int(f.read())
+        high_scores: list = json.load(f)
+        print(high_scores)
+        f = True
+        for s in high_scores:
+            sc = int(s[1])
+            if f:
+                f = False
+                high_score = sc
+            if sc > high_score:
+                high_score = sc
 except FileNotFoundError or OSError:
-    high_score = 0
+    high_scores = []
 
 
 def to_screen_scale(surface: pygame.Surface):
@@ -23,8 +34,7 @@ def to_screen_scale(surface: pygame.Surface):
 
 rates = {
     'obstacle': 2,
-    'bin': 15,
-    'bottle': 25
+    'recycle': 2
 }
 
 pygame.init()
@@ -33,8 +43,8 @@ clock = pygame.time.Clock()
 running = True
 
 game_font_big = pygame.font.SysFont('Arial', 100)
-game_font_medium = pygame.font.SysFont('Arial', 75)
-game_font_small = pygame.font.SysFont('Arial', 40)
+game_font_medium = pygame.font.SysFont('Arial', 50)
+game_font_small = pygame.font.SysFont('Arial', 25)
 
 high_score_text: pygame.Surface | None = None
 hover: GuiObject | None = None
@@ -60,6 +70,8 @@ def load_assets(prefix: str = '', *paths: list[str]):
         try:
             i = to_screen_scale(pygame.image.load(file.path).convert_alpha())
             assets[f'{prefix}{name}'] = i
+            i = pygame.transform.flip(i, True, False)
+            assets[f'{prefix}{name}2'] = i
         except pygame.error:
             try:
                 sounds[name] = pygame.mixer.Sound(file.path)
@@ -71,31 +83,22 @@ load_assets()
 
 obstacles: tuple[Obstacle, ...] = (
     Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
-             assets['obstacle_chair_side'], (4 * MULTIPLIER,
-                                             6 * MULTIPLIER,
-                                             12 * MULTIPLIER,
-                                             37 * MULTIPLIER)),
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
-             pygame.transform.flip(assets['obstacle_chair_side'], True, False),
-             (1 * MULTIPLIER,
-              6 * MULTIPLIER,
-              12 * MULTIPLIER,
-              37 * MULTIPLIER)),
+             assets['obstacle_chair_side'], 'chair'),
+    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side2'].get_height()),
+             assets['obstacle_chair_side2'], 'chair'),
     Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side'].get_height()),
-             assets['obstacle_table_side'],
-             (1 * MULTIPLIER,
-              16 * MULTIPLIER,
-              43 * MULTIPLIER,
-              4 * MULTIPLIER)),
+             assets['obstacle_table_side'], 'table'),
+    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side2'].get_height()),
+             assets['obstacle_table_side2'], 'table'),
 )
-bottle_obs: tuple[Obstacle, ...] = (
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_bottle'].get_height()),
-             assets['bottle_bottle']),
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_can'].get_height()),
-             assets['bottle_can'])
+recycle_obs: tuple[Obstacle, ...] = (
+    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_bottle'].get_height()),
+             assets['bottle_bottle'], 'bottle'),
+    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_can'].get_height()),
+             assets['bottle_can'], 'bottle'),
+    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['recycle_bin'].get_height()),
+             assets['recycle_bin'], 'bin')
 )
-recycle_bin = Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['recycle_bin'].get_height()),
-                       assets['recycle_bin'])
 
 
 def stop_game():
@@ -159,6 +162,7 @@ def main_menu():
         assets['button_exit_pressed']
     )
     gui_objects['play'].after_click = game
+    gui_objects['info'].after_click = leaderboard
     gui_objects['exit'].after_click = stop_game
     grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
     grey_box.fill((75, 75, 75))
@@ -170,11 +174,15 @@ def main_menu():
 
 
 def game():
-    global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text, bottles
+    global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text,\
+        bottles, lives, bottles_recycled, chairs_flipped, name
+    name = ''
+    bottles_recycled = 0
+    chairs_flipped = 0
     high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
     bottles = 0
+    lives = 3
     score = 0
-    Obstacle.velocity = 10
     game_started = pygame.time.get_ticks() - 1000
     unload_scene()
     scene = 'game'
@@ -183,47 +191,86 @@ def game():
     grey_box.fill((75, 75, 75))
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
-                                             assets['player_side'], pygame.transform.rotate(assets['player_side'], 90))
+                                             assets['player_holding'])
     sounds['go'].play(-1)
+
+
+def lose():
+    global gui_objects, scene
+    scene = 'lose'
+    for k in list(game_objects.keys()):
+        obj = game_objects[k]
+        if isinstance(obj, Obstacle):
+            obj.velocity = 0
+    bottles_recycled_text = game_font_small.render(f'Bottles Recycled: {bottles_recycled}', True, (255, 255, 255))
+    chairs_flipped_text = game_font_small.render(f'Chairs Flipped: {chairs_flipped}', True, (255, 255, 255))
+    gui_objects = {
+        'high_score': GuiObject((WIDTH/2-high_score_text.get_width()/2, HEIGHT/6), high_score_text),
+        'bottles': GuiObject((WIDTH/2-bottles_recycled_text.get_width()/2, HEIGHT/6-high_score_text.get_height()),
+                             bottles_recycled_text),
+        'chairs': GuiObject((WIDTH/2-chairs_flipped_text.get_width()/2,
+                             HEIGHT/6-high_score_text.get_height()-bottles_recycled_text.get_height()),
+                            chairs_flipped_text),
+        'retry': Button((WIDTH / 2 + assets['button_retry'].get_width(), HEIGHT / 2),
+                        assets['button_retry'], assets['button_retry_pressed']),
+        'back': Button((WIDTH / 2 - assets['button_back'].get_width()*1.5, HEIGHT / 2),
+                       assets['button_back'], assets['button_back_pressed'])
+    }
+    gui_objects['retry'].after_click = game
+    gui_objects['back'].after_click = main_menu
+
+
+def leaderboard():
+    global gui_objects, scene
+    unload_scene()
+    scene = 'leaderboard'
+    gui_objects = {
+        'back': Button((0, 0),
+                       assets['button_back'], assets['button_back_pressed'])
+    }
+    gui_objects['back'].after_click = main_menu
+    xl = 0
+    yl = HEIGHT/8
+    i = 0
+
+    for names, score in high_scores:
+        t = game_font_medium.render(f'{names}: {score}', True, (255, 255, 255))
+        gui_objects[f'score{i}'] = GuiObject((xl, yl), t)
+        yl += game_font_medium.get_height()
+        i += 1
 
 
 intro_alpha = 1
 delta_alpha = 3
 game_started = 0
 score = 0
+lives = 3
 bottles = 0
-
-
-def recycle():
-    global bottles
-    bottles = 0
-
-
-def get_bottle():
-    global bottles
-    bottles += 1
-
-
-for obstacle in obstacles:
-    obstacle.collide = main_menu
-for bottle in bottle_obs:
-    bottle.collide = get_bottle
-recycle_bin.collide = recycle
+chairs = 0
+bottles_recycled = 0
+chairs_flipped = 0
+name = ''
 
 intro()
 while running:
-    delta_time = clock.tick() / 1000 * FPS
+    delta_time = clock.tick(FPS) / 1000 * FPS
     window.fill(bg_color)
 
+    colliding = None
     for k, obj in list(game_objects.items()):
         obj.update(delta_time)
         obj.draw(window)
         if obj.pos.x + obj.image.get_width() < 0:
+            if isinstance(obj, Obstacle):
+                if obj.type == 'chair':
+                    lives -= 1
+                    if lives <= 0:
+                        lose()
+                elif obj.type == 'bottle':
+                    score -= 150
             del game_objects[k]
-        if isinstance(obj, Obstacle):
-            if obj.collides_with(player):
-                del game_objects[k]
-                obj.collide()
+        if isinstance(obj, Obstacle) and (colliding is None) and obj.collides_with(player):
+            colliding = k
     for obj in gui_objects.values():
         obj.draw(window)
 
@@ -237,29 +284,30 @@ while running:
             main_menu()
     elif scene == 'game':
         player.max_velocity = Player.max_velocity - (player.velocity_add * bottles)
-        score += delta_time
         score_text = game_font_medium.render(f'Score: {str(round(score))}', True, (255, 255, 255))
-        bottles_text = game_font_medium.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
+        bottles_text = game_font_small.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
+        chairs_text = game_font_small.render(f'Chairs: {str(chairs)}', True, (255, 255, 255))
+        lives_text = game_font_small.render(f'Lives: {str(lives)}', True, (255, 255, 255))
+        name_text = game_font_small.render(f'Name: {str(name)}', True, (255, 255, 255))
         if score > high_score:
             high_score = score
             high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
-        window.blit(bottles_text, (WIDTH/2-bottles_text.get_width()/2, HEIGHT/7-bottles_text.get_height()))
-        window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7))
-        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2, HEIGHT/7+score_text.get_height()))
+        window.blit(bottles_text, (WIDTH/2-bottles_text.get_width(), HEIGHT/7))
+        window.blit(chairs_text, (WIDTH/2+chairs_text.get_width(), HEIGHT/7))
+        window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()))
+        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()+score_text.get_height()))
+        window.blit(lives_text, (player.pos.x-lives_text.get_width()/2, player.pos.y-lives_text.get_height()))
+    elif scene == 'lose':
+        name_text = game_font_small.render(f'Name: {name}', True, (255, 255, 255))
+        window.blit(name_text, (WIDTH/4, HEIGHT-HEIGHT/4))
 
     if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % rates['obstacle'] == 0:
         if f'obs{str(time)}' not in game_objects.keys():
             game_objects[f'obs{str(time)}'] = random.choice(obstacles).copy()
-            if Obstacle.velocity < MAX_VELOCITY:
-                Obstacle.velocity += 0.1
 
-    if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % rates['bin'] == 0:
-        if f'recycle{str(time)}' not in game_objects.keys():
-            game_objects[f'recycle{str(time)}'] = recycle_bin.copy()
-
-    if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % rates['bottle'] == 0:
+    if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % rates['recycle'] == 0:
         if f'bottle{str(time)}' not in game_objects.keys():
-            game_objects[f'bottle{str(time)}'] = random.choice(bottle_obs).copy()
+            game_objects[f'bottle{str(time)}'] = random.choice(recycle_obs).copy()
 
     fps = game_font_big.render(str(round(clock.get_fps())), True, (255, 255, 255))
     window.blit(fps, (WIDTH-fps.get_width(), HEIGHT-fps.get_height()))
@@ -289,23 +337,55 @@ while running:
                 if hover:
                     hover.after_click()
             case pygame.KEYDOWN:
-                if scene == 'main_menu' and event.key == pygame.K_SPACE:
+                if scene == 'lose':
+                    if event.key == pygame.K_RETURN and name != '':
+                        high_scores.append([name, str(score)])
+                        main_menu()
+                    elif event.key == pygame.K_ESCAPE:
+                        main_menu()
+                    elif event.key == pygame.K_BACKSPACE:
+                        name = name[:-1]
+                    elif event.unicode in ALPHABET:
+                        name += event.unicode
+                elif scene == 'main_menu' and event.key == pygame.K_SPACE:
                     gui_objects['play'].after_click()
-                if scene == 'main_menu' and event.key == pygame.K_ESCAPE:
+                elif scene == 'main_menu' and event.key == pygame.K_ESCAPE:
                     gui_objects['exit'].after_click()
-                if scene == 'intro':
+                elif scene == 'intro':
                     main_menu()
-                if scene == 'game' and event.key == pygame.K_UP and not player.jumping:
-                    if player.sliding:
-                        player.stop_sliding()
-                    player.jump()
-            case pygame.KEYUP:
-                if scene == 'game' and event.key == pygame.K_DOWN and player.sliding:
-                    player.stop_sliding()
-    if scene == 'game' and pygame.key.get_pressed()[pygame.K_DOWN] and not player.jumping and not player.sliding:
-        player.slide()
+                elif scene == 'game' and colliding is not None and event.key == pygame.K_SPACE:
+                    if game_objects[colliding].type == 'chair':
+                        del game_objects[colliding]
+                        player.hold()
+                        if 'holding' not in list(game_objects.keys()):
+                            game_objects['holding'] = GameObject(
+                                (player.pos.x+player.image.get_width(), player.pos.y),
+                                assets['obstacle_chair_side2']
+                            )
+                        chairs += 1
+                    elif game_objects[colliding].type == 'bottle':
+                        del game_objects[colliding]
+                        bottles += 1
+                    elif game_objects[colliding].type == 'table' and 'holding' in game_objects.keys():
+                        score += 100
+                        chairs -= 1
+                        col = game_objects[colliding].copy()
+                        hol = game_objects['holding'].copy()
+                        game_objects['table'] = Obstacle(col.pos, col.image, '')
+                        game_objects['placed'] = Obstacle(
+                            (col.pos.x-4*MULTIPLIER, col.pos.y-18*MULTIPLIER),
+                            pygame.transform.flip(hol.image, False, True), ''
+                        )
+                        if chairs <= 0:
+                            chairs = 0
+                            player.place()
+                            del game_objects['holding']
+                        del game_objects[colliding]
+                    elif game_objects[colliding].type == 'bin':
+                        score += 25 * bottles
+                        bottles = 0
 
 
 with open('highscore', 'w') as f:
-    f.write(str(round(high_score)))
+    json.dump(high_scores, f)
 pygame.quit()
