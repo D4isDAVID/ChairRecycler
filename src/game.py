@@ -309,8 +309,8 @@ while running:
         if f'bottle{str(time)}' not in game_objects.keys():
             game_objects[f'bottle{str(time)}'] = random.choice(recycle_obs).copy()
 
-    fps = game_font_big.render(str(round(clock.get_fps())), True, (255, 255, 255))
-    window.blit(fps, (WIDTH-fps.get_width(), HEIGHT-fps.get_height()))
+    # fps = game_font_big.render(str(round(clock.get_fps())), True, (255, 255, 255))
+    # window.blit(fps, (WIDTH-fps.get_width(), HEIGHT-fps.get_height()))
     pygame.display.flip()
 
     for event in pygame.event.get():
