@@ -36,6 +36,11 @@ rates = {
     'recycle': 2
 }
 
+max_values = {
+    'chair': 8,
+    'bottle': 8
+}
+
 pygame.init()
 window = pygame.display.set_mode(RESOLUTION, vsync=1)
 clock = pygame.time.Clock()
