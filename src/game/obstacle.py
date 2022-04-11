@@ -11,4 +11,9 @@ class Obstacle(GameObject):
         self.pos.x -= self.velocity * delta_time
 
     def copy(self):
-        return Obstacle(self.pos, self.image, self.hitbox)
+        obs = Obstacle(self.pos, self.image, self.hitbox)
+        obs.collide = self.collide
+        return obs
+
+    def collide(self, *args, **kwargs):
+        pass
