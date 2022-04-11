@@ -197,11 +197,36 @@ def game():
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_holding'])
+    gui_objects['pause'] = Button((WIDTH/2-assets['button_pause'].get_width()/2, 10), assets['button_pause'], assets['button_pause_pressed'])
+    gui_objects['pause'].after_click = pause
     sounds['go'].play(-1)
 
 
+def pause():
+    global game_objects, scene
+    scene = 'pause'
+    for k in list(game_objects.keys()):
+        obj = game_objects[k]
+        if isinstance(obj, Obstacle):
+            obj.velocity = 0
+    gui_objects['back'] = Button((WIDTH/2+assets['button_back'].get_width(), 10), assets['button_back'], assets['button_back_pressed'])
+    gui_objects['back'].after_click = main_menu
+    gui_objects['pause'].after_click = unpause
+
+
+def unpause():
+    global game_objects, scene
+    del gui_objects['back']
+    scene = 'game'
+    for k in list(game_objects.keys()):
+        obj = game_objects[k]
+        if isinstance(obj, Obstacle):
+            obj.velocity = Obstacle.velocity
+    gui_objects['pause'].after_click = pause
+
+
 def lose():
-    global gui_objects, scene
+    global gui_objects, game_objects, scene
     scene = 'lose'
     for k in list(game_objects.keys()):
         obj = game_objects[k]
