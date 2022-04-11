@@ -61,7 +61,10 @@ def load_assets(prefix: str = '', *paths: list[str]):
             i = to_screen_scale(pygame.image.load(file.path).convert_alpha())
             assets[f'{prefix}{name}'] = i
         except pygame.error:
-            sounds[name] = pygame.mixer.Sound(file.path)
+            try:
+                sounds[name] = pygame.mixer.Sound(file.path)
+            except pygame.error:
+                pass
 
 
 load_assets()
