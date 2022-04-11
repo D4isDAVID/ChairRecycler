@@ -5,9 +5,9 @@ from game import GameObject, Player, Obstacle
 from gui import Button, GuiObject
 
 
-WIDTH, HEIGHT = RESOLUTION = 1920, 1080
+WIDTH, HEIGHT = RESOLUTION = 1280, 720
 FPS = 60
-MULTIPLIER = 5
+MULTIPLIER = 4
 MAX_VELOCITY = 50
 
 try:
@@ -15,7 +15,6 @@ try:
         high_score = int(f.read())
 except FileNotFoundError or OSError:
     high_score = 0
-print(high_score)
 
 
 def to_screen_scale(surface: pygame.Surface):
@@ -24,8 +23,8 @@ def to_screen_scale(surface: pygame.Surface):
 
 rates = {
     'obstacle': 2,
-    'bin': 119,
-    'bottle': 29
+    'bin': 15,
+    'bottle': 25
 }
 
 pygame.init()
