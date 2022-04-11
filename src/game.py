@@ -15,7 +15,6 @@ high_score = 0
 try:
     with open('highscore') as f:
         high_scores: list = json.load(f)
-        print(high_scores)
         f = True
         for s in high_scores:
             sc = int(s[1])
@@ -175,11 +174,12 @@ def main_menu():
 
 def game():
     global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text,\
-        bottles, lives, bottles_recycled, chairs_flipped, name
+        bottles, chairs, lives, bottles_recycled, chairs_flipped, name
     name = ''
     bottles_recycled = 0
     chairs_flipped = 0
     high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
+    chairs = 0
     bottles = 0
     lives = 3
     score = 0
@@ -283,6 +283,13 @@ while running:
         if intro_alpha <= -10:
             main_menu()
     elif scene == 'game':
+        offset = 0
+        for i in range(chairs - 1):
+            offset += 4 * MULTIPLIER
+            window.blit(
+                assets['obstacle_chair_side2'],
+                (player.pos.x + player.image.get_width(), player.pos.y - offset)
+            )
         player.max_velocity = Player.max_velocity - (player.velocity_add * bottles)
         score_text = game_font_medium.render(f'Score: {str(round(score))}', True, (255, 255, 255))
         bottles_text = game_font_small.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
@@ -354,7 +361,7 @@ while running:
                 elif scene == 'intro':
                     main_menu()
                 elif scene == 'game' and colliding is not None and event.key == pygame.K_SPACE:
-                    if game_objects[colliding].type == 'chair':
+                    if game_objects[colliding].type == 'chair' and chairs < max_values['chair']:
                         del game_objects[colliding]
                         player.hold()
                         if 'holding' not in list(game_objects.keys()):
@@ -363,7 +370,7 @@ while running:
                                 assets['obstacle_chair_side2']
                             )
                         chairs += 1
-                    elif game_objects[colliding].type == 'bottle':
+                    elif game_objects[colliding].type == 'bottle' and bottles < max_values['bottle']:
                         del game_objects[colliding]
                         bottles += 1
                     elif game_objects[colliding].type == 'table' and 'holding' in game_objects.keys():
