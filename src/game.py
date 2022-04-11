@@ -137,7 +137,7 @@ def main_menu():
     global scene, bg_color, gui_objects
     unload_scene()
     scene = 'main_menu'
-    bg_color = pygame.Color(125, 125, 125)
+    bg_color = pygame.Color(100, 100, 100)
     gui_objects['logo'] = GuiObject((WIDTH / 2 - assets['logo'].get_width() / 2,
                                      HEIGHT / 3 - assets['logo'].get_height() / 2),
                                     assets['logo'])
@@ -169,7 +169,7 @@ def main_menu():
     gui_objects['info'].after_click = leaderboard
     gui_objects['exit'].after_click = stop_game
     grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
-    grey_box.fill((75, 75, 75))
+    grey_box.fill((125, 125, 125))
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     game_objects['player'] = GameObject((WIDTH / MULTIPLIER,
                                          game_objects['ground'].pos.y - assets['player_front'].get_height()),
@@ -191,9 +191,9 @@ def game():
     game_started = pygame.time.get_ticks() - 1000
     unload_scene()
     scene = 'game'
-    bg_color = pygame.Color(125, 125, 125)
+    bg_color = pygame.Color(100, 100, 100)
     grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
-    grey_box.fill((75, 75, 75))
+    grey_box.fill((125, 125, 125))
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_holding'])
