@@ -254,10 +254,11 @@ def leaderboard():
     global gui_objects, scene
     unload_scene()
     scene = 'leaderboard'
+    leaderboard_text = game_font_medium.render('Leaderboard', True, (255, 255, 255))
     gui_objects = {
-        'back': Button((0, 0),
-                       assets['button_back'], assets['button_back_pressed'])
+        'back': Button((0, 0), assets['button_back'], assets['button_back_pressed'])
     }
+    gui_objects['leaderboard'] = GuiObject((gui_objects['back'].image.get_width(), 0), leaderboard_text)
     gui_objects['back'].after_click = main_menu
     xl = 0
     yl = HEIGHT/8
