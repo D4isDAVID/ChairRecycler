@@ -330,11 +330,11 @@ while running:
         if score > high_score:
             high_score = score
             high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
-        window.blit(bottles_text, (WIDTH/2-bottles_text.get_width(), HEIGHT/7))
-        window.blit(chairs_text, (WIDTH/2+chairs_text.get_width(), HEIGHT/7))
+        window.blit(bottles_text, (WIDTH/2-bottles_text.get_width()-10, HEIGHT/7))
+        window.blit(chairs_text, (WIDTH/2+10, HEIGHT/7))
         window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()))
         window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()+score_text.get_height()))
-        window.blit(lives_text, (player.pos.x-lives_text.get_width()/2, player.pos.y-lives_text.get_height()))
+        window.blit(lives_text, (player.pos.x, player.pos.y-lives_text.get_height()))
     elif scene == 'lose':
         name_text = game_font_small.render(f'Name: {name}', True, (255, 255, 255))
         window.blit(name_text, (WIDTH/4, HEIGHT-HEIGHT/4))
