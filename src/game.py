@@ -248,6 +248,7 @@ def lose():
             obj.velocity = 0
     bottles_recycled_text = game_font_small.render(f'Bottles Recycled: {bottles_recycled}', True, (255, 255, 255))
     chairs_flipped_text = game_font_small.render(f'Chairs Flipped: {chairs_flipped}', True, (255, 255, 255))
+    enter_name_text = game_font_small.render(f'Type your name here. Press enter to submit.', True, (255, 255, 255))
     gui_objects = {
         'high_score': GuiObject((WIDTH/2-high_score_text.get_width()/2, HEIGHT/6), high_score_text),
         'bottles': GuiObject((WIDTH/2-bottles_recycled_text.get_width()/2, HEIGHT/6-high_score_text.get_height()),
@@ -258,7 +259,8 @@ def lose():
         'retry': Button((WIDTH / 2 + assets['button_retry'].get_width(), HEIGHT / 2),
                         assets['button_retry'], assets['button_retry_pressed']),
         'back': Button((WIDTH / 2 - assets['button_back'].get_width()*1.5, HEIGHT / 2),
-                       assets['button_back'], assets['button_back_pressed'])
+                       assets['button_back'], assets['button_back_pressed']),
+        'enter_name': GuiObject((WIDTH/4, HEIGHT-HEIGHT/4+game_font_small.get_height()), enter_name_text)
     }
     gui_objects['retry'].after_click = game
     gui_objects['back'].after_click = main_menu
@@ -428,7 +430,6 @@ while running:
         bottles_text = game_font_small.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
         chairs_text = game_font_small.render(f'Chairs: {str(chairs)}', True, (255, 255, 255))
         lives_text = game_font_small.render(f'Lives: {str(lives)}', True, (255, 255, 255))
-        name_text = game_font_small.render(f'Name: {str(player_name)}', True, (255, 255, 255))
         if score > high_score:
             high_score = score
             high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
@@ -491,7 +492,7 @@ while running:
                         main_menu()
                     elif event.key == pygame.K_BACKSPACE:
                         player_name = player_name[:-1]
-                    elif event.unicode in ALPHABET:
+                    elif event.unicode in ALPHABET and len(player_name) < 16:
                         player_name += event.unicode
                 elif scene == 'bind':
                     settings['action_keybind'] = event.key
