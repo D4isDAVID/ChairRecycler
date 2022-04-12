@@ -218,6 +218,7 @@ def game():
     gui_objects['pause'] = Button((WIDTH/2-assets['button_pause'].get_width()/2, 10),
                                   assets['button_pause'], assets['button_pause_pressed'])
     gui_objects['pause'].after_click = pause
+    sounds['go'].set_volume(settings['music_volume'])
     sounds['go'].play(-1)
 
 
