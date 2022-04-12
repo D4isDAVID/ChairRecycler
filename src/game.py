@@ -37,6 +37,12 @@ except (FileNotFoundError, OSError, ValueError) as e:
     }
 
 
+def sort_leaderboard():
+    global high_scores
+    high_scores.sort(key=lambda x: x[1], reverse=True)
+    high_scores = high_scores[:10]
+
+
 def to_screen_scale(surface: pygame.Surface):
     return pygame.transform.scale(surface, (surface.get_width() * MULTIPLIER, surface.get_height() * MULTIPLIER))
 
@@ -268,6 +274,7 @@ def lose():
 
 def leaderboard():
     global gui_objects, scene
+    sort_leaderboard()
     unload_scene()
     scene = 'leaderboard'
     leaderboard_text = game_font_medium.render('Leaderboard', True, (255, 255, 255))
@@ -538,6 +545,7 @@ while running:
                         bottles = 0
 
 
+sort_leaderboard()
 with open('highscore', 'w') as f:
     json.dump(high_scores, f)
 with open('settings', 'w') as f:
