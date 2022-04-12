@@ -23,8 +23,18 @@ try:
                 high_score = sc
             if sc > high_score:
                 high_score = sc
-except FileNotFoundError or OSError:
+except (FileNotFoundError, OSError) as e:
     high_scores = []
+
+try:
+    with open('settings') as f:
+        settings: dict = json.load(f)
+except (FileNotFoundError, OSError, ValueError) as e:
+    settings = {
+        'music_volume': 1.0,
+        'sfx_volume': 1.0,
+        'action_keybind': pygame.K_SPACE
+    }
 
 
 def to_screen_scale(surface: pygame.Surface):
@@ -72,10 +82,10 @@ def load_assets(prefix: str = '', *paths: list[str]):
             load_assets(f'{prefix}{name}', *paths, name)
             continue
         try:
-            i = to_screen_scale(pygame.image.load(file.path).convert_alpha())
-            assets[f'{prefix}{name}'] = i
-            i = pygame.transform.flip(i, True, False)
-            assets[f'{prefix}{name}2'] = i
+            asset = to_screen_scale(pygame.image.load(file.path).convert_alpha())
+            assets[f'{prefix}{name}'] = asset
+            asset = pygame.transform.flip(asset, True, False)
+            assets[f'{prefix}{name}2'] = asset
         except pygame.error:
             try:
                 sounds[name] = pygame.mixer.Sound(file.path)
@@ -167,6 +177,7 @@ def main_menu():
     )
     gui_objects['play'].after_click = game
     gui_objects['info'].after_click = leaderboard
+    gui_objects['options'].after_click = settings_screen
     gui_objects['exit'].after_click = stop_game
     grey_box = pygame.Surface((WIDTH, HEIGHT / MULTIPLIER))
     grey_box.fill((125, 125, 125))
@@ -174,13 +185,14 @@ def main_menu():
     game_objects['player'] = GameObject((WIDTH / MULTIPLIER,
                                          game_objects['ground'].pos.y - assets['player_front'].get_height()),
                                         assets['player_front'])
+    sounds['main_menu'].set_volume(settings['music_volume'])
     sounds['main_menu'].play(-1)
 
 
 def game():
     global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text,\
-        bottles, chairs, lives, bottles_recycled, chairs_flipped, name
-    name = ''
+        bottles, chairs, lives, bottles_recycled, chairs_flipped, player_name
+    player_name = ''
     bottles_recycled = 0
     chairs_flipped = 0
     high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
@@ -197,7 +209,8 @@ def game():
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_holding'])
-    gui_objects['pause'] = Button((WIDTH/2-assets['button_pause'].get_width()/2, 10), assets['button_pause'], assets['button_pause_pressed'])
+    gui_objects['pause'] = Button((WIDTH/2-assets['button_pause'].get_width()/2, 10),
+                                  assets['button_pause'], assets['button_pause_pressed'])
     gui_objects['pause'].after_click = pause
     sounds['go'].play(-1)
 
@@ -209,7 +222,8 @@ def pause():
         obj = game_objects[k]
         if isinstance(obj, Obstacle):
             obj.velocity = 0
-    gui_objects['back'] = Button((WIDTH/2+assets['button_back'].get_width(), 10), assets['button_back'], assets['button_back_pressed'])
+    gui_objects['back'] = Button((WIDTH/2+assets['button_back'].get_width(), 10),
+                                 assets['button_back'], assets['button_back_pressed'])
     gui_objects['back'].after_click = main_menu
     gui_objects['pause'].after_click = unpause
 
@@ -271,6 +285,94 @@ def leaderboard():
         i += 1
 
 
+def settings_screen():
+    global scene, gui_objects
+    scene = 'settings'
+    pygame.mixer.stop()
+    keybind_text = game_font_medium.render(pygame.key.name(settings['action_keybind']), True, (255, 255, 255))
+    keybind_label = game_font_small.render('Action Keybind', True, (255, 255, 255))
+    music_label = game_font_small.render('Music Volume', True, (255, 255, 255))
+    sfx_label = game_font_small.render('SFX Volume', True, (255, 255, 255))
+    image = pygame.Surface((keybind_text.get_width()+30, keybind_text.get_height()+10))
+    image_pressed = image.copy()
+    image.fill((80, 80, 80))
+    image_pressed.fill((50, 50, 50))
+    pygame.draw.rect(image, (0, 0, 0), (0, 0, image.get_width(), image.get_height()), 5)
+    pygame.draw.rect(image_pressed, (0, 0, 0), (0, 0, image_pressed.get_width(), image_pressed.get_height()), 5)
+    image.blit(keybind_text,
+               (image.get_width()/2-keybind_text.get_width()/2, image.get_height()/2-keybind_text.get_height()/2))
+    image_pressed.blit(keybind_text,
+                       (image.get_width()/2-keybind_text.get_width()/2, image.get_height()/2-keybind_text.get_height()/2))
+    gui_objects = {
+        'back': Button(
+            (WIDTH/2-assets['button_back'].get_width()/2, HEIGHT/3),
+            assets['button_back'], assets['button_back_pressed'])
+    }
+    gui_objects['set_keybind_label'] = GuiObject(
+        (WIDTH/2-keybind_label.get_width()/2,
+         HEIGHT/3+50+gui_objects['back'].image.get_height()-keybind_label.get_height()), keybind_label)
+    gui_objects['set_keybind'] = Button(
+        (WIDTH/2-image.get_width()/2, HEIGHT/3+50+gui_objects['back'].image.get_height()),
+        image, image_pressed)
+    gui_objects['music_volume_label'] = GuiObject(
+        (WIDTH/2-music_label.get_width()/2,
+         HEIGHT/3+150+gui_objects['back'].image.get_height()-music_label.get_height()), music_label)
+    gui_objects['music_volume_left'] = Button(
+        (WIDTH/2-assets['button_slider'].get_width()/2-125, HEIGHT/3+150+gui_objects['back'].image.get_height()),
+        assets['button_slider'], assets['button_slider'])
+    gui_objects['music_volume_right'] = Button(
+        (WIDTH/2-assets['button_slider2'].get_width()/2+125, HEIGHT/3+150+gui_objects['back'].image.get_height()),
+        assets['button_slider2'], assets['button_slider2'])
+    gui_objects['sfx_volume_label'] = GuiObject(
+        (WIDTH/2-sfx_label.get_width()/2,
+         HEIGHT/3+250+gui_objects['back'].image.get_height()-sfx_label.get_height()), sfx_label)
+    gui_objects['sfx_volume_left'] = Button(
+        (WIDTH/2-assets['button_slider'].get_width()/2-125, HEIGHT/3+250+gui_objects['back'].image.get_height()),
+        assets['button_slider'], assets['button_slider'])
+    gui_objects['sfx_volume_right'] = Button(
+        (WIDTH/2-assets['button_slider2'].get_width()/2+125, HEIGHT/3+250+gui_objects['back'].image.get_height()),
+        assets['button_slider2'], assets['button_slider2'])
+    gui_objects['back'].after_click = main_menu
+    gui_objects['set_keybind'].after_click = bind
+    gui_objects['music_volume_left'].after_click = music_volume_down
+    gui_objects['music_volume_right'].after_click = music_volume_up
+    gui_objects['sfx_volume_left'].after_click = sfx_volume_down
+    gui_objects['sfx_volume_right'].after_click = sfx_volume_up
+
+
+def bind():
+    global scene
+    scene = 'bind'
+
+
+def music_volume_up():
+    settings['music_volume'] += 0.1
+    if settings['music_volume'] > 1:
+        settings['music_volume'] = 1
+
+
+def music_volume_down():
+    settings['music_volume'] -= 0.1
+    if settings['music_volume'] < 0:
+        settings['music_volume'] = 0
+
+
+def sfx_volume_up():
+    settings['sfx_volume'] += 0.1
+    if settings['sfx_volume'] > 1:
+        settings['sfx_volume'] = 1
+    for sound in sounds.values():
+        sound.set_volume(settings['sfx_volume'])
+
+
+def sfx_volume_down():
+    settings['sfx_volume'] -= 0.1
+    if settings['sfx_volume'] < 0:
+        settings['sfx_volume'] = 0
+    for sound in sounds.values():
+        sound.set_volume(settings['sfx_volume'])
+
+
 intro_alpha = 1
 delta_alpha = 3
 game_started = 0
@@ -280,7 +382,7 @@ bottles = 0
 chairs = 0
 bottles_recycled = 0
 chairs_flipped = 0
-name = ''
+player_name = ''
 
 intro()
 while running:
@@ -326,18 +428,26 @@ while running:
         bottles_text = game_font_small.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
         chairs_text = game_font_small.render(f'Chairs: {str(chairs)}', True, (255, 255, 255))
         lives_text = game_font_small.render(f'Lives: {str(lives)}', True, (255, 255, 255))
-        name_text = game_font_small.render(f'Name: {str(name)}', True, (255, 255, 255))
+        name_text = game_font_small.render(f'Name: {str(player_name)}', True, (255, 255, 255))
         if score > high_score:
             high_score = score
             high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
         window.blit(bottles_text, (WIDTH/2-bottles_text.get_width()-10, HEIGHT/7))
         window.blit(chairs_text, (WIDTH/2+10, HEIGHT/7))
         window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()))
-        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()+score_text.get_height()))
+        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2,
+                                      HEIGHT/7+bottles_text.get_height()+score_text.get_height()))
         window.blit(lives_text, (player.pos.x, player.pos.y-lives_text.get_height()))
     elif scene == 'lose':
-        name_text = game_font_small.render(f'Name: {name}', True, (255, 255, 255))
+        name_text = game_font_small.render(f'Name: {player_name}', True, (255, 255, 255))
         window.blit(name_text, (WIDTH/4, HEIGHT-HEIGHT/4))
+    elif scene == 'settings':
+        volume = game_font_medium.render(f'{round(settings["music_volume"]*100)}%', True, (255, 255, 255))
+        window.blit(volume,
+                    (WIDTH / 2 - volume.get_width() / 2, HEIGHT / 3 + 150 + gui_objects['back'].image.get_height()))
+        volume = game_font_medium.render(f'{round(settings["sfx_volume"]*100)}%', True, (255, 255, 255))
+        window.blit(volume,
+                    (WIDTH / 2 - volume.get_width() / 2, HEIGHT / 3 + 250 + gui_objects['back'].image.get_height()))
 
     if scene == 'game' and (time := (pygame.time.get_ticks() - game_started) // 1000) % rates['obstacle'] == 0:
         if f'obs{str(time)}' not in game_objects.keys():
@@ -376,22 +486,19 @@ while running:
                     hover.after_click()
             case pygame.KEYDOWN:
                 if scene == 'lose':
-                    if event.key == pygame.K_RETURN and name != '':
-                        high_scores.append([name, str(score)])
-                        main_menu()
-                    elif event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_RETURN and player_name != '':
+                        high_scores.append([player_name, str(score)])
                         main_menu()
                     elif event.key == pygame.K_BACKSPACE:
-                        name = name[:-1]
+                        player_name = player_name[:-1]
                     elif event.unicode in ALPHABET:
-                        name += event.unicode
-                elif scene == 'main_menu' and event.key == pygame.K_SPACE:
-                    gui_objects['play'].after_click()
-                elif scene == 'main_menu' and event.key == pygame.K_ESCAPE:
-                    gui_objects['exit'].after_click()
+                        player_name += event.unicode
+                elif scene == 'bind':
+                    settings['action_keybind'] = event.key
+                    settings_screen()
                 elif scene == 'intro':
                     main_menu()
-                elif scene == 'game' and colliding is not None and event.key == pygame.K_SPACE:
+                elif scene == 'game' and colliding is not None and event.key == settings['action_keybind']:
                     if game_objects[colliding].type == 'chair' and chairs < max_values['chair']:
                         del game_objects[colliding]
                         player.hold()
@@ -426,4 +533,6 @@ while running:
 
 with open('highscore', 'w') as f:
     json.dump(high_scores, f)
+with open('settings', 'w') as f:
+    json.dump(settings, f)
 pygame.quit()
