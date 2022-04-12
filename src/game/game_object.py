@@ -3,10 +3,10 @@ import pygame
 
 class GameObject:
     def __init__(self, pos: tuple[float, float],
-                 image: pygame.Surface, hitbox: tuple[float, float, float, float] = None) -> None:
+                 image: pygame.Surface) -> None:
         self.pos = pygame.Vector2(*pos)
         self.image = image
-        self.hitbox = hitbox and pygame.Rect(*hitbox) or pygame.Rect(0, 0, image.get_width(), image.get_height())
+        self.hitbox = pygame.Rect(0, 0, image.get_width(), image.get_height())
 
     def get_world_hitbox(self):
         hitbox = self.hitbox.copy()
@@ -23,4 +23,4 @@ class GameObject:
         pass
 
     def copy(self):
-        return GameObject(self.pos, self.image, self.hitbox)
+        return GameObject(self.pos, self.image)

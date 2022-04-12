@@ -435,7 +435,6 @@ while running:
                 assets['obstacle_chair_side2'],
                 (player.pos.x + player.image.get_width(), player.pos.y - offset)
             )
-        player.max_velocity = Player.max_velocity - (player.velocity_add * bottles)
         score_text = game_font_medium.render(f'Score: {str(round(score))}', True, (255, 255, 255))
         bottles_text = game_font_small.render(f'Bottles: {str(bottles)}', True, (255, 255, 255))
         chairs_text = game_font_small.render(f'Chairs: {str(chairs)}', True, (255, 255, 255))
