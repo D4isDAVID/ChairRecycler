@@ -401,8 +401,10 @@ while running:
                     lives -= 1
                     if lives <= 0:
                         lose()
+                    sounds['fail'].play()
                 elif obj.type == 'bottle':
                     score -= 150
+                    sounds['fail'].play()
             del game_objects[k]
         if isinstance(obj, Obstacle) and (colliding is None) and obj.collides_with(player):
             colliding = k
@@ -503,6 +505,7 @@ while running:
                     if game_objects[colliding].type == 'chair' and chairs < max_values['chair']:
                         del game_objects[colliding]
                         player.hold()
+                        sounds['got'].play()
                         if 'holding' not in list(game_objects.keys()):
                             game_objects['holding'] = GameObject(
                                 (player.pos.x+player.image.get_width(), player.pos.y),
@@ -511,8 +514,10 @@ while running:
                         chairs += 1
                     elif game_objects[colliding].type == 'bottle' and bottles < max_values['bottle']:
                         del game_objects[colliding]
+                        sounds['got'].play()
                         bottles += 1
                     elif game_objects[colliding].type == 'table' and 'holding' in game_objects.keys():
+                        sounds['success'].play()
                         score += 100
                         chairs -= 1
                         col = game_objects[colliding].copy()
@@ -527,7 +532,8 @@ while running:
                             player.place()
                             del game_objects['holding']
                         del game_objects[colliding]
-                    elif game_objects[colliding].type == 'bin':
+                    elif game_objects[colliding].type == 'bin' and bottles > 0:
+                        sounds['success'].play()
                         score += 25 * bottles
                         bottles = 0
 
