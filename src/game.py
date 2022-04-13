@@ -16,8 +16,8 @@ try:
     with open('highscore') as f:
         high_scores: list = json.load(f)
         f = True
-        for s in high_scores:
-            sc = int(s[1])
+        for name, sc in high_scores:
+            sc = int(sc)
             if f:
                 f = False
                 high_score = sc
@@ -39,7 +39,7 @@ except (FileNotFoundError, OSError, ValueError) as e:
 
 def sort_leaderboard():
     global high_scores
-    high_scores.sort(key=lambda x: x[1], reverse=True)
+    high_scores.sort(key=lambda x: int(x[1]), reverse=True)
     high_scores = high_scores[:10]
 
 
