@@ -5,7 +5,7 @@ from .game_object import GameObject
 class Player(GameObject):
     def __init__(self, x: float, ground_y: float, image: pygame.Surface,
                  hold_image: pygame.Surface) -> None:
-        super().__init__((x, ground_y-image.get_height()), image)
+        super().__init__((x, ground_y - image.get_height()), image)
         self.original_image = image
         self.hold_image = hold_image
         self.ground_y = ground_y

@@ -1,10 +1,9 @@
+import json
 import os
 import random
 import pygame
-import json
 from game import GameObject, Player, Obstacle
 from gui import Button, GuiObject
-
 
 ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()-=_+/,.`~;\\ '
 WIDTH, HEIGHT = RESOLUTION = 1280, 720
@@ -102,21 +101,22 @@ def load_assets(prefix: str = '', *paths: list[str]):
 load_assets()
 
 obstacles: tuple[Obstacle, ...] = (
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
+    Obstacle((WIDTH + Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side'].get_height()),
              assets['obstacle_chair_side'], 'chair'),
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side2'].get_height()),
+    Obstacle((WIDTH + Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_chair_side2'].get_height()),
              assets['obstacle_chair_side2'], 'chair'),
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side'].get_height()),
+    Obstacle((WIDTH + Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side'].get_height()),
              assets['obstacle_table_side'], 'table'),
-    Obstacle((WIDTH+Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side2'].get_height()),
+    Obstacle((WIDTH + Obstacle.velocity, HEIGHT - HEIGHT / MULTIPLIER - assets['obstacle_table_side2'].get_height()),
              assets['obstacle_table_side2'], 'table'),
 )
 recycle_obs: tuple[Obstacle, ...] = (
-    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_bottle'].get_height()),
-             assets['bottle_bottle'], 'bottle'),
-    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_can'].get_height()),
+    Obstacle(
+        (WIDTH + Obstacle.velocity * 2 * 100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_bottle'].get_height()),
+        assets['bottle_bottle'], 'bottle'),
+    Obstacle((WIDTH + Obstacle.velocity * 2 * 100, HEIGHT - HEIGHT / MULTIPLIER - assets['bottle_can'].get_height()),
              assets['bottle_can'], 'bottle'),
-    Obstacle((WIDTH+Obstacle.velocity*1.5*100, HEIGHT - HEIGHT / MULTIPLIER - assets['recycle_bin'].get_height()),
+    Obstacle((WIDTH + Obstacle.velocity * 2 * 100, HEIGHT - HEIGHT / MULTIPLIER - assets['recycle_bin'].get_height()),
              assets['recycle_bin'], 'bin')
 )
 
@@ -196,7 +196,7 @@ def main_menu():
 
 
 def game():
-    global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text,\
+    global scene, bg_color, gui_objects, game_objects, player, game_started, score, high_score, high_score_text, \
         bottles, chairs, lives, bottles_recycled, chairs_flipped, player_name
     player_name = ''
     bottles_recycled = 0
@@ -215,7 +215,7 @@ def game():
     game_objects['ground'] = GameObject((0, HEIGHT - HEIGHT / MULTIPLIER), grey_box)
     player = game_objects['player'] = Player(WIDTH / MULTIPLIER, game_objects['ground'].pos.y, assets['player_side'],
                                              assets['player_holding'])
-    gui_objects['pause'] = Button((WIDTH/2-assets['button_pause'].get_width()/2, 10),
+    gui_objects['pause'] = Button((WIDTH / 2 - assets['button_pause'].get_width() / 2, 10),
                                   assets['button_pause'], assets['button_pause_pressed'])
     gui_objects['pause'].after_click = pause
     sounds['go'].set_volume(settings['music_volume'])
@@ -229,7 +229,7 @@ def pause():
         obj = game_objects[k]
         if isinstance(obj, Obstacle):
             obj.velocity = 0
-    gui_objects['back'] = Button((WIDTH/2+assets['button_back'].get_width(), 10),
+    gui_objects['back'] = Button((WIDTH / 2 + assets['button_back'].get_width(), 10),
                                  assets['button_back'], assets['button_back_pressed'])
     gui_objects['back'].after_click = main_menu
     gui_objects['pause'].after_click = unpause
@@ -257,17 +257,18 @@ def lose():
     chairs_flipped_text = game_font_small.render(f'Chairs Flipped: {chairs_flipped}', True, (255, 255, 255))
     enter_name_text = game_font_small.render(f'Type your name here. Press enter to submit.', True, (255, 255, 255))
     gui_objects = {
-        'high_score': GuiObject((WIDTH/2-high_score_text.get_width()/2, HEIGHT/6), high_score_text),
-        'bottles': GuiObject((WIDTH/2-bottles_recycled_text.get_width()/2, HEIGHT/6-high_score_text.get_height()),
-                             bottles_recycled_text),
-        'chairs': GuiObject((WIDTH/2-chairs_flipped_text.get_width()/2,
-                             HEIGHT/6-high_score_text.get_height()-bottles_recycled_text.get_height()),
+        'high_score': GuiObject((WIDTH / 2 - high_score_text.get_width() / 2, HEIGHT / 6), high_score_text),
+        'bottles': GuiObject(
+            (WIDTH / 2 - bottles_recycled_text.get_width() / 2, HEIGHT / 6 - high_score_text.get_height()),
+            bottles_recycled_text),
+        'chairs': GuiObject((WIDTH / 2 - chairs_flipped_text.get_width() / 2,
+                             HEIGHT / 6 - high_score_text.get_height() - bottles_recycled_text.get_height()),
                             chairs_flipped_text),
         'retry': Button((WIDTH / 2 + assets['button_retry'].get_width(), HEIGHT / 2),
                         assets['button_retry'], assets['button_retry_pressed']),
-        'back': Button((WIDTH / 2 - assets['button_back'].get_width()*1.5, HEIGHT / 2),
+        'back': Button((WIDTH / 2 - assets['button_back'].get_width() * 1.5, HEIGHT / 2),
                        assets['button_back'], assets['button_back_pressed']),
-        'enter_name': GuiObject((WIDTH/4, HEIGHT-HEIGHT/4+game_font_small.get_height()), enter_name_text)
+        'enter_name': GuiObject((WIDTH / 4, HEIGHT - HEIGHT / 4 + game_font_small.get_height()), enter_name_text)
     }
     gui_objects['retry'].after_click = game
     gui_objects['back'].after_click = main_menu
@@ -285,7 +286,7 @@ def leaderboard():
     gui_objects['leaderboard'] = GuiObject((gui_objects['back'].image.get_width(), 0), leaderboard_text)
     gui_objects['back'].after_click = main_menu
     xl = 0
-    yl = HEIGHT/8
+    yl = HEIGHT / 8
     i = 0
 
     for names, score in high_scores:
@@ -303,44 +304,50 @@ def settings_screen():
     keybind_label = game_font_small.render('Action Keybind', True, (255, 255, 255))
     music_label = game_font_small.render('Music Volume', True, (255, 255, 255))
     sfx_label = game_font_small.render('SFX Volume', True, (255, 255, 255))
-    image = pygame.Surface((keybind_text.get_width()+30, keybind_text.get_height()+10))
+    image = pygame.Surface((keybind_text.get_width() + 30, keybind_text.get_height() + 10))
     image_pressed = image.copy()
     image.fill((80, 80, 80))
     image_pressed.fill((50, 50, 50))
     pygame.draw.rect(image, (0, 0, 0), (0, 0, image.get_width(), image.get_height()), 5)
     pygame.draw.rect(image_pressed, (0, 0, 0), (0, 0, image_pressed.get_width(), image_pressed.get_height()), 5)
     image.blit(keybind_text,
-               (image.get_width()/2-keybind_text.get_width()/2, image.get_height()/2-keybind_text.get_height()/2))
+               (image.get_width() / 2 - keybind_text.get_width() / 2,
+                image.get_height() / 2 - keybind_text.get_height() / 2))
     image_pressed.blit(keybind_text,
-                       (image.get_width()/2-keybind_text.get_width()/2, image.get_height()/2-keybind_text.get_height()/2))
+                       (image.get_width() / 2 - keybind_text.get_width() / 2,
+                        image.get_height() / 2 - keybind_text.get_height() / 2))
     gui_objects = {
         'back': Button(
-            (WIDTH/2-assets['button_back'].get_width()/2, HEIGHT/3),
+            (WIDTH / 2 - assets['button_back'].get_width() / 2, HEIGHT / 3),
             assets['button_back'], assets['button_back_pressed'])
     }
     gui_objects['set_keybind_label'] = GuiObject(
-        (WIDTH/2-keybind_label.get_width()/2,
-         HEIGHT/3+50+gui_objects['back'].image.get_height()-keybind_label.get_height()), keybind_label)
+        (WIDTH / 2 - keybind_label.get_width() / 2,
+         HEIGHT / 3 + 50 + gui_objects['back'].image.get_height() - keybind_label.get_height()), keybind_label)
     gui_objects['set_keybind'] = Button(
-        (WIDTH/2-image.get_width()/2, HEIGHT/3+50+gui_objects['back'].image.get_height()),
+        (WIDTH / 2 - image.get_width() / 2, HEIGHT / 3 + 50 + gui_objects['back'].image.get_height()),
         image, image_pressed)
     gui_objects['music_volume_label'] = GuiObject(
-        (WIDTH/2-music_label.get_width()/2,
-         HEIGHT/3+150+gui_objects['back'].image.get_height()-music_label.get_height()), music_label)
+        (WIDTH / 2 - music_label.get_width() / 2,
+         HEIGHT / 3 + 150 + gui_objects['back'].image.get_height() - music_label.get_height()), music_label)
     gui_objects['music_volume_left'] = Button(
-        (WIDTH/2-assets['button_slider'].get_width()/2-125, HEIGHT/3+150+gui_objects['back'].image.get_height()),
+        (WIDTH / 2 - assets['button_slider'].get_width() / 2 - 125,
+         HEIGHT / 3 + 150 + gui_objects['back'].image.get_height()),
         assets['button_slider'], assets['button_slider'])
     gui_objects['music_volume_right'] = Button(
-        (WIDTH/2-assets['button_slider2'].get_width()/2+125, HEIGHT/3+150+gui_objects['back'].image.get_height()),
+        (WIDTH / 2 - assets['button_slider2'].get_width() / 2 + 125,
+         HEIGHT / 3 + 150 + gui_objects['back'].image.get_height()),
         assets['button_slider2'], assets['button_slider2'])
     gui_objects['sfx_volume_label'] = GuiObject(
-        (WIDTH/2-sfx_label.get_width()/2,
-         HEIGHT/3+250+gui_objects['back'].image.get_height()-sfx_label.get_height()), sfx_label)
+        (WIDTH / 2 - sfx_label.get_width() / 2,
+         HEIGHT / 3 + 250 + gui_objects['back'].image.get_height() - sfx_label.get_height()), sfx_label)
     gui_objects['sfx_volume_left'] = Button(
-        (WIDTH/2-assets['button_slider'].get_width()/2-125, HEIGHT/3+250+gui_objects['back'].image.get_height()),
+        (WIDTH / 2 - assets['button_slider'].get_width() / 2 - 125,
+         HEIGHT / 3 + 250 + gui_objects['back'].image.get_height()),
         assets['button_slider'], assets['button_slider'])
     gui_objects['sfx_volume_right'] = Button(
-        (WIDTH/2-assets['button_slider2'].get_width()/2+125, HEIGHT/3+250+gui_objects['back'].image.get_height()),
+        (WIDTH / 2 - assets['button_slider2'].get_width() / 2 + 125,
+         HEIGHT / 3 + 250 + gui_objects['back'].image.get_height()),
         assets['button_slider2'], assets['button_slider2'])
     gui_objects['back'].after_click = main_menu
     gui_objects['set_keybind'].after_click = bind
@@ -442,20 +449,20 @@ while running:
         if score > high_score:
             high_score = score
             high_score_text = game_font_small.render(f'High Score: {str(round(high_score))}', True, (255, 255, 255))
-        window.blit(bottles_text, (WIDTH/2-bottles_text.get_width()-10, HEIGHT/7))
-        window.blit(chairs_text, (WIDTH/2+10, HEIGHT/7))
-        window.blit(score_text, (WIDTH/2-score_text.get_width()/2, HEIGHT/7+bottles_text.get_height()))
-        window.blit(high_score_text, (WIDTH/2-high_score_text.get_width()/2,
-                                      HEIGHT/7+bottles_text.get_height()+score_text.get_height()))
-        window.blit(lives_text, (player.pos.x, player.pos.y-lives_text.get_height()))
+        window.blit(bottles_text, (WIDTH / 2 - bottles_text.get_width() - 10, HEIGHT / 7))
+        window.blit(chairs_text, (WIDTH / 2 + 10, HEIGHT / 7))
+        window.blit(score_text, (WIDTH / 2 - score_text.get_width() / 2, HEIGHT / 7 + bottles_text.get_height()))
+        window.blit(high_score_text, (WIDTH / 2 - high_score_text.get_width() / 2,
+                                      HEIGHT / 7 + bottles_text.get_height() + score_text.get_height()))
+        window.blit(lives_text, (player.pos.x, player.pos.y - lives_text.get_height()))
     elif scene == 'lose':
         name_text = game_font_small.render(f'Name: {player_name}', True, (255, 255, 255))
-        window.blit(name_text, (WIDTH/4, HEIGHT-HEIGHT/4))
+        window.blit(name_text, (WIDTH / 4, HEIGHT - HEIGHT / 4))
     elif scene == 'settings':
-        volume = game_font_medium.render(f'{round(settings["music_volume"]*100)}%', True, (255, 255, 255))
+        volume = game_font_medium.render(f'{round(settings["music_volume"] * 100)}%', True, (255, 255, 255))
         window.blit(volume,
                     (WIDTH / 2 - volume.get_width() / 2, HEIGHT / 3 + 150 + gui_objects['back'].image.get_height()))
-        volume = game_font_medium.render(f'{round(settings["sfx_volume"]*100)}%', True, (255, 255, 255))
+        volume = game_font_medium.render(f'{round(settings["sfx_volume"] * 100)}%', True, (255, 255, 255))
         window.blit(volume,
                     (WIDTH / 2 - volume.get_width() / 2, HEIGHT / 3 + 250 + gui_objects['back'].image.get_height()))
 
@@ -515,7 +522,7 @@ while running:
                         sounds['got'].play()
                         if 'holding' not in list(game_objects.keys()):
                             game_objects['holding'] = GameObject(
-                                (player.pos.x+player.image.get_width(), player.pos.y),
+                                (player.pos.x + player.image.get_width(), player.pos.y),
                                 assets['obstacle_chair_side2']
                             )
                         chairs += 1
@@ -531,7 +538,7 @@ while running:
                         hol = game_objects['holding'].copy()
                         game_objects['table'] = Obstacle(col.pos, col.image, '')
                         game_objects['placed'] = Obstacle(
-                            (col.pos.x-4*MULTIPLIER, col.pos.y-18*MULTIPLIER),
+                            (col.pos.x - 4 * MULTIPLIER, col.pos.y - 18 * MULTIPLIER),
                             pygame.transform.flip(hol.image, False, True), ''
                         )
                         if chairs <= 0:
@@ -543,7 +550,6 @@ while running:
                         sounds['success'].play()
                         score += 25 * bottles
                         bottles = 0
-
 
 sort_leaderboard()
 with open('highscore', 'w') as f:
