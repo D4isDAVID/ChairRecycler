@@ -1,5 +1,5 @@
 venv/
 __pycache__/
 .idea/
-src/highscore
-src/settings
+highscore
+settings
